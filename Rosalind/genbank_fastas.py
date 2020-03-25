@@ -56,7 +56,6 @@ for acc_num, identifier in acc_values:
 
 	#tries to connect and outputs and exception if not successful
 	try:
-		#calls the getPage() function and stores the result
 	    	response = str(getPage(url))
 		
 		#the first line is the header

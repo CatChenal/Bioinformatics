@@ -64,6 +64,7 @@ instance/
 # Scrapy stuff:
 .scrapy
 _pdf*
+temp/
 _temp*
 _tmp*
 _unused*

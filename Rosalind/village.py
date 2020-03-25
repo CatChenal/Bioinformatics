@@ -1,5 +1,3 @@
-import os
-
 """
 Problem
 Given: Two positive integers a and b, each less than 1000.
@@ -65,7 +63,6 @@ Sample Dataset
 100 200
 Sample Output
 7500
-Hintclick to e
 """
 def sum_odds(a, b):
     a = int(a)
@@ -109,18 +106,8 @@ list 1
 we 2
 also 1
 Zen 1
-
-Hints
-To iterate over the words in a string, you can split it at each occurrence of empty space as follows:
-
-for word in str.split(' '):
-    print word
-For a pretty representation when outputting a dictionary, you can use the built in .items() function:
-
-for key, value in dict.items():
-    print key
-    print value
 """
+
 def words_freq_from_file(fname=os.path.join(os.curdir, 'rosalind_ini6.txt')):
     from collections import defaultdict
 
@@ -132,5 +119,3 @@ def words_freq_from_file(fname=os.path.join(os.curdir, 'rosalind_ini6.txt')):
     
     for k, v in d.items():
         print(k,v)
-
-

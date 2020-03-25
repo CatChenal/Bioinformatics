@@ -1,7 +1,0 @@
-dna = "ACTGCGATCGATC"
-protein = "CQVDAHCSAH"
-species_name = "Homo sapiens"
-blast_output_description = "Zinc-finger double domain; pfam13465"
-
-transcription_factor_binding_site_pattern = "ATGGCGCC"
-protein_domain_pattern = "CYCCFLF"

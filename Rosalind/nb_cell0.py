@@ -78,6 +78,7 @@ def get_mdl_pkgs(alib):
             if mdl_sub.__doc__:
                 print('\n{:>20} : {}'.format(mdl_name, mdl_sub.__doc__.strip()))
 
-# these no longer work in JupyterLab
-%load_ext autoreload
+# autoreload extension
+if 'autoreload' not in ipython.extension_manager.loaded:
+    %load_ext autoreload
 %autoreload 2 
