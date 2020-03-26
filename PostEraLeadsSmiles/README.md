@@ -2,9 +2,16 @@
 ### Module: postera_smiles.py
 ### Python: 3.6.7
 ---
+Update:
+2020-03-26: Fix write mode, 'w+' -> 'w'.
+
+On-going review due to design flaw:
+* 1. The extracting function is likely missing additional entries past the first one due to the fact that it is not visiting the submission details page. Unlike what I initially thought, it is not sufficient.
+* 2. Need to come up with an incremental process of the SMILES extraction; right now, all listing (on the submmission apge) are extracted, not just the new one => Need a way to determine new ones. 
 ---
 ## Function `extract_postera_smiles()`: parses https://covid.postera.ai/covid/submissions in order to retrieve the submission id and its [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) code.
 ### Note: If the `save_as` argument is None (default), the function returns a list of (id, smiles) tuples.
+NOTE: The following description is erroneous (the function retrieves only the first of possible multiple submissions for a submitter): will be updated with a new verion of the function.
 
 The div(card h-100) container on the submission page has all the info needed[1]: 
 * submission id: from the first a.href
