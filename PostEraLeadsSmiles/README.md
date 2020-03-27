@@ -1,46 +1,69 @@
 # PostEraLeadsSmiles
-### Module: postera_smiles.py
 ### Python: 3.6.7
 ---
 Update:
-2020-03-26: Fix write mode, 'w+' -> 'w'.
-
-On-going review due to design flaw:
-* 1. The extracting function is likely missing additional entries past the first one due to the fact that it is not visiting the submission details page. Unlike what I initially thought, it is not sufficient.
-* 2. Need to come up with an incremental process of the SMILES extraction; right now, all listing (on the submmission apge) are extracted, not just the new one => Need a way to determine new ones. 
+2020-03-27: Refactored main function to output a json file: submitter_id:[smiles of each entry]
 ---
-## Function `extract_postera_smiles()`: parses https://covid.postera.ai/covid/submissions in order to retrieve the submission id and its [SMILES](https://en.wikipedia.org/wiki/Simplified_molecular-input_line-entry_system) code.
-### Note: If the `save_as` argument is None (default), the function returns a list of (id, smiles) tuples.
-NOTE: The following description is erroneous (the function retrieves only the first of possible multiple submissions for a submitter): will be updated with a new verion of the function.
+# Module: postera_smiles.py
+The main function `get_submissions_dict()` performs two extractions:
+* First extraction on https://covid.postera.ai/covid/submissions:
+  The submitter's details page address from the anchor.href of the h5 (class="mb-1") tag.
+* Second extraction on the the submitter's details page:
+  All the alt.string from the img (class="card-img") tags.
 
-The div(card h-100) container on the submission page has all the info needed[1]: 
-* submission id: from the first a.href
-* smiles code: from the img.alt
+Submission page entry example on https://covid.postera.ai/covid/submissions:
 ```
 <div class="card h-100">
     <div class="card-header">
-      <h5 class="mb-1"><a href="submissions/fd8d85a5-db4a-4ecf-93d1-416eee50b961">JAN-GHE-fd8</a></h5>
+      <h5 class="mb-1"><a href="submissions/fedd1f79-9ed6-4487-a801-e6f14abf8e11">PET-SGC-fed</a></h5>
     </div>
-    <img src="/synthesize/C1(C=C(C%23N)C=NC=1NC1CC1)CNCCNC(C)=O" class="card-img" alt="C1(C=C(C#N)C=NC=1NC1CC1)CNCCNC(C)=O">
+    <img src="/synthesize/CC1C=CN=CC=1NC(=O)CCCCN1CCN(C(=O)COC2C=CC(C)=CC=2)CC1" class="card-img" alt="CC1C=CN=CC=1NC(=O)CCCCN1CCN(C(=O)COC2C=CC(C)=CC=2)CC1">
     <div class="card-body">
-      <a style="width: 100%" href="/covid/submissions/fd8d85a5-db4a-4ecf-93d1-416eee50b961" class="mb-2 btn btn-primary">View</a>
-
+      <a style="width: 100%" href="/covid/submissions/fedd1f79-9ed6-4487-a801-e6f14abf8e11" class="mb-2 btn btn-primary">View</a>
     </div>
 </div>
 ```
-[1] Given the html structure as at 03-25-2020.
-
-## Call:
-
-### As a function:
+Details page example (here with single entry): 
 ```
-import postera_smiles
-
-postera_smiles.extract_postera_smiles(save_as='data/postera_smiles.csv')
+<div id="smiles_list" class="row row-cols-1 row-cols-md-4">  
+    <div class="col col-md-3 mb-4">
+      <div class="card h-100">
+        <img src="/synthesize/CC1C=CN=CC=1NC(=O)CCCCN1CCN(C(=O)COC2C=CC(C)=CC=2)CC1" class="card-img" alt="CC1C=CN=CC=1NC(=O)CCCCN1CCN(C(=O)COC2C=CC(C)=CC=2)CC1">
+        <div class="card-body text-left">
+          <p><strong>PET-SGC-fed-1</strong></p>
+          <p>CC1C=CN=CC=1NC(=O)CCCCN1CCN(C(=O)COC2C=CC(C)=CC=2)CC1</p>
+        </div>
+      </div>
+    </div>
+</div>
+```
+Call examples:
+--------------
+## 1. Command line: Optional argument is a folder path. 
+The json filename has pattern <2020_12_31_23_59>_postera_smiles.json.
+Command:
+```
+python postera_smiles.py ./data/intermediate
+```
+Output:
+```
+Getting PostEra.ai COVID submissions SMILES codes (Note: slow process!)...
+Submissions SMILES json file saved as:
+    data/intermediate/2020_03_27_15_38_postera_smiles.json
 ```
 
-### At the comman line:
+## 2. Using the postera_smiles.py module:
 ```
-python postera_smiles.py data/postera_smiles.csv
+import postera_smiles as psmiles
+from pathlib import Path
+
+submitters_dict = psmiles.get_submissions_dict()
+
+fname = Path.cwd().joinpath('data', 'intermediate', psmiles.get_stamped_filename())
+psmiles.save_as_json(fname, submitters_dict)
+
+# to load:
+
+jdict = psmiles.load_json(fname)
+list(jdict.keys())[:5]
 ```
----
