@@ -142,8 +142,7 @@ def get_submissions_dict():
             submitters[a.string] = get_details_list(details_url)
     return submitters
 
-
-if '__name__' == '__main__':
+if __name__ == '__main__':
     import sys
     from pathlib import Path
     
