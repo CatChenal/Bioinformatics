@@ -1,4 +1,9 @@
 # PostEraLeadsSmiles
+### Update: Obsolete project (2020-04-04)
+The data files of the lead compounds submitted to the [COVID Moonshot](https://discuss.postera.ai/t/round-2-is-finished-now-a-call-for-help/816/11) are now hosted on Github: https://github.com/mc-robinson/COVID_moonshot_submissions.
+
+---
+---
 ### Python: 3.6.7
 ---
 Update:
