@@ -1,7 +1,10 @@
 # PostEraLeadsSmiles
-### Python: 3.6.7
+### Python: 3.6+
 ---
 Update:
+
+2020-04-04: The company repo now stores the list of complete submissions, [Compounds_Virtual.csv](https://github.com/postera-ai/COVID_moonshot_submissions/blob/master/data_for_CDD/compounds/), which is refreshed periodically.
+
 2020-03-27: Refactored main function to output a json file: submitter_id:[smiles of each entry]
 ---
 # Module: postera_smiles.py
