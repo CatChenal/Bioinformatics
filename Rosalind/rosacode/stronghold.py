@@ -3,153 +3,38 @@ import numpy as np
 from collections import (defaultdict,
                          Counter)
 from itertools import product
-
-                         
 """
-Problem
-A string is simply an ordered collection of symbols selected from some 
-alphabet and formed into a word; the length of a string is the number 
-of symbols that it contains.
-
-An example of a length 21 DNA string (whose alphabet contains the 
-symbols 'A', 'C', 'G', and 'T') is "ATGCTTCAGAAAGGTCTTACG."
-
-Given: A DNA string s of length at most 1000 nt.
-
-Return: Four integers (separated by spaces) counting the respective 
-number of times that the symbols 'A', 'C', 'G', and 'T' occur in s.
-
-Sample Dataset
-AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC
-Sample Output
-20 12 17 21
+Answers to Rosalind problems: 
+http://rosalind.info/problems/list-view/
 """
-def words_freq_from_file(fname=os.path.join(os.curdir, 'rosalind_dna.txt'), 
-                         char_max = 10001):
-    d = defaultdict(int)
-    with open(fname) as fh:
-        for k in fh.readline()[:char_max]:
-            if k in ['A', 'C', 'G', 'T']:
-                d[k] += 1
     
-    print( d['A'], d['C'], d['G'], d['T'])
+"""DNA"""
+def words_freq_from_file(fname=None, char_max=1000):
+    with open(fname) as fh:
+        line = fh.readline()[:char_max]
+            
+    cnt = Counter(line)
+    print(cnt['A'], cnt['C'], cnt['G'], cnt['T'])
+    return
+    
 
-"""
-Problem
-An RNA string is a string formed from the alphabet 
-containing 'A', 'C', 'G', and 'U'.
-
-Given a DNA string t corresponding to a coding strand, its 
-transcribed RNA string u is formed by replacing all occurrences of 'T' in t with 'U' in u.
-
-Given: A DNA string t having length at most 1000 nt.
-Return: The transcribed RNA string of t.
-
-Sample Dataset
-GATGGAACTTGACTACGTAAATT
-Sample Output
-GAUGGAACUUGACUACGUAAAUU
-"""
-
-def rna_from_dna_file(fname=os.path.join(os.curdir, 'rosalind_rna.txt'), 
-                      char_max = 10001):
-
+"""RNA"""
+def rna_from_dna_file(fname=None, char_max=1000):
     with open(fname) as fh:
         t = fh.readline().strip()[:char_max]
-    
     return t.replace('T', 'U')
 
 
-"""
-The Secondary and Tertiary Structures of DNA
-
-Problem
-In DNA strings, symbols 'A' and 'T' are complements of each other, 
-as are 'C' and 'G'.
-
-The reverse complement of a DNA string s is the string sc formed by 
-reversing the symbols of s, then taking the complement of each 
-symbol (e.g., the reverse complement of "GTCA" is "TGAC").
-
-Given: A DNA string s of length at most 1000 bp.
-Return: The reverse complement sc of s.
-
-Sample Dataset
-AAAACCCGGT
-Sample Output
-ACCGGGTTTT
-"""
-
-def rev_complement_from_dna_file(fname=os.path.join(os.curdir, 'rosalind_revc.txt'), 
-                                 char_max = 10001):
-    if (os.sep not in fname):
-        # string was passed:
-        dna = fname[:char_max]
-    else:
-        with open(fname) as fh:
-            dna = fh.readline().strip()[:char_max]
-        
+"""REVC"""
+def rev_complement_from_dna_file(fname=None, char_max=1000):
+    with open(fname) as fh:
+        dna = fh.readline().strip()[:char_max]
     d = {'A':'T', 'T':'A', 'C':'G', 'G':'C'}
-
     print(''.join(d[nt] for nt in dna[::-1]))
+    return
 
-"""
-Wascally Wabbits
 
-Figure 1. The growth of Fibonacci's rabbit population for the first six months.
-
-In 1202, Leonardo of Pisa (commonly known as Fibonacci) considered a 
-mathematical exercise regarding the reproduction of a population of 
-rabbits. He made the following simplifying assumptions about the population:
-
-The population begins in the first month with a pair of newborn rabbits.
-Rabbits reach reproductive age after one month.
-In any given month, every rabbit of reproductive age mates with another 
-rabbit of reproductive age. Exactly one month after two rabbits mate, 
-they produce one male and one female rabbit. Rabbits never die or stop reproducing.
-
-Fibonacci's exercise was to calculate how many pairs of rabbits would remain 
-in one year. We can see that in the second month, the first pair of rabbits reach 
-reproductive age and mate. In the third month, another pair of rabbits is born, 
-and we have two rabbit pairs; our first pair of rabbits mates again. In the 
-fourth month, another pair of rabbits is born to the original pair, while the 
-second pair reach maturity and mate (with three total pairs). The dynamics of 
-the rabbit population are illustrated in Figure 1. After a year, the rabbit 
-population boasts 144 pairs.
-
-Problem
-A recurrence relation is a way of defining the terms of a sequence with respect 
-to the values of previous terms. In the case of Fibonacci's rabbits from the 
-introduction, any given month will contain the rabbits that were alive the 
-previous month, plus any new offspring. 
-A key observation is that the number of offspring in any month is equal to 
-the number of rabbits that were alive two months prior. As a result, if Fn 
-represents the number of rabbit pairs alive after the n-th month, then we obtain 
-the Fibonacci sequence having terms Fn that are defined by the recurrence relation 
-Fn = Fn−1 + Fn−2 (with F1 = F2 = 1 to initiate the sequence). 
-
-When finding the n-th term of a sequence defined by a recurrence relation, we 
-can simply use the recurrence relation to generate terms for progressively 
-larger values of n. This problem introduces us to the computational technique 
-of dynamic programming, which successively builds up solutions by using the 
-answers to smaller cases.
-
-Given: Positive integers n≤40 and k≤5. n: months; k: litter size.
-Return: The total number of rabbit pairs that will be present after n months,
- if we begin with 1 pair and in each generation, every pair of reproduction-age 
- rabbits produces a litter of k rabbit pairs (instead of only 1 pair).
-
-Sample Dataset
-5 3
-Sample Output
-19
-mon pairs:
-1 F1 = 1
-2 F2 = 1
-3 F1*k=3 + F2 = 4 = F3
-4 F2*k=3 + F3 = 3 + 4 = 7 = F4
-5 F3*k=3 + F4 = 4*3 + 7 = 12 + 7 = 19
-"""
+"""FIB"""
 def fib_pairs(months, p):
     """
     Return the total number of rabbit pairs that will be present after n months, 
@@ -158,11 +43,10 @@ def fib_pairs(months, p):
     """
     a = 1
     b = 1
-    if (months < 0) | (months > 40):
-        return "Incorrect month range (0-40)"
-
-    if p > 5:
-        return "Incorrect litter pairs (0-5)"
+    if (months < 0) | (months > 40) | (p > 5):
+        msg = "At least one parameter is invalid:\nmonths, "
+        msg += "positive int ≤ 40;  p, # pairs in litter ≤ 5."
+        return msg
 
     if months == 1: 
         return a 
@@ -182,48 +66,10 @@ def test_fib_pairs():
     ok =  out == ans
     print('test_fib_pairs(5,3) = {}?: {}'.format(ans, ok))
     
-
-"""
-Problem
-The GC-content of a DNA string is given by the percentage of symbols
- in the string that are 'C' or 'G'. For example, the GC-content of 
- "AGCTATAG" is 37.5%. Note that the reverse complement of any DNA 
- string has the same GC-content.
-DNA strings must be labeled when they are consolidated into a database. 
-A commonly used method of string labeling is called FASTA format. In 
-this format, the string is introduced by a line that begins with '>', 
-followed by some labeling information. Subsequent lines contain the 
-string itself; the first line to begin with '>' indicates the label 
-of the next string.
-
-In Rosalind's implementation, a string in FASTA format will be labeled 
-by the ID "Rosalind_xxxx", where "xxxx" denotes a four-digit code between 
-0000 and 9999.
-
-Given: At most 10 DNA strings in FASTA format (of length at most 1 kbp each).
-Return: The ID of the string having the highest GC-content, followed by the 
-GC-content of that string. Rosalind allows for a default error of 0.001 in 
-all decimal answers unless otherwise stated; please see the note on absolute 
-error below.
-
-Sample Dataset
->Rosalind_6404
-CCTGCGGAAGATCGGCACTAGAATAGCCAGAACCGTTTCTCTGAGGCTTCCGGCCTTCCC
-TCCCACTAATAATTCTGAGG
->Rosalind_5959
-CCATCGGTAGCGCATCCTTAGTCCAATTAAGTCCCTATCCAGGCGCTCCGCCGAAGGTCT
-ATATCCATTTGTCAGCAGACACGC
->Rosalind_0808
-CCACCCTCGTGGTATGGCTAGGCATTCAGGAACCGGAGAACGCTTCAGACCAGCCCGGAC
-TGGGAACCTGCGGGCAGTAGGTGGAAT
-
-Sample Output
-Rosalind_0808
-60.919540
-"""
-
+"""GC"""
 def SimpleFastaParser(handle):
-    """Iterate over Fasta records as string tuples.
+    """
+    Iterate over Fasta records as string tuples.
     For each record a tuple of two strings is returned, the FASTA title
     line (without the leading '>' character), and the sequence (with any
     whitespace removed). The title line is not divided up into an
@@ -238,8 +84,8 @@ def SimpleFastaParser(handle):
     ('alpha (again - this is a duplicate entry to test the indexing code)', 'ACGTA')
     ('delta', 'CGCGC')
     """
-    # Skip any text before the first record (e.g. blank lines, comments)
-    # This matches the previous implementation where .readline() was used
+    # Skip any text before the first record (e.g. blank lines, comments),
+    # save title if title line
     for line in handle:
         if line[0] == '>':
             title = line[1:].rstrip()
@@ -248,17 +94,17 @@ def SimpleFastaParser(handle):
             # Same exception as for FASTQ files
             raise ValueError("Is this handle in binary mode not text mode?")
     else:
-        # no break encountered - probably an empty file
+        # no line/break encountered - probably an empty file
         return
 
-    # Main logic
-    # Note, remove trailing whitespace, and any internal spaces
+    # Main logic: remove trailing whitespace, and any internal spaces
     # (and any embedded \r which are possible in mangled files
     # when not opened in universal read lines mode)
     lines = []
     for line in handle:
         if line[0] == '>':
             yield title, ''.join(lines).replace(" ", "").replace("\r", "")
+            # reset list
             lines = []
             title = line[1:].rstrip()
             continue
@@ -266,13 +112,13 @@ def SimpleFastaParser(handle):
 
     yield title, ''.join(lines).replace(" ", "").replace("\r", "")
 
-
+"""GC"""
 def gc_content(seq):
     cnt = Counter(seq)
     gc = 100 * (cnt['C'] + cnt['G']) / sum(cnt.values())
     return np.round(gc, 6)
 
-
+"""GC"""
 def highest_gc_from_fasta_files(multifasta=os.path.join(os.curdir, 'rosalind_gc.txt')):
     gc = 0
     with open(multifasta) as fh:
@@ -282,50 +128,11 @@ def highest_gc_from_fasta_files(multifasta=os.path.join(os.curdir, 'rosalind_gc.
                 gc = newgc
                 gcid = seqs[0]
         
-    print('{}\n{}'.format(gcid, gc))
+    print(F'{gcid}\n{gc}')
+    return
 
-"""
-Evolution as a Sequence of Mistakes
 
-Figure 1. A point mutation in DNA changing a C-G pair to an A-T pair.
-A mutation is simply a mistake that occurs during the creation or copying 
-of a nucleic acid, in particular DNA. Because nucleic acids are vital to 
-cellular functions, mutations tend to cause a ripple effect throughout the 
-cell. Although mutations are technically mistakes, a very rare mutation may 
-equip the cell with a beneficial attribute. In fact, the macro effects of 
-evolution are attributable by the accumulated result of beneficial microscopic 
-mutations over many generations.
-
-The simplest and most common type of nucleic acid mutation is a point mutation, 
-which replaces one base with another at a single nucleotide. In the case of DNA, 
-a point mutation must change the complementary base accordingly; see Figure 1.
-
-Two DNA strands taken from different organism or species genomes are homologous 
-if they share a recent ancestor; thus, counting the number of bases at which 
-homologous strands differ provides us with the minimum number of point mutations 
-that could have occurred on the evolutionary path between the two strands.
-
-We are interested in minimizing the number of (point) mutations separating two 
-species because of the biological principle of parsimony, which demands that 
-evolutionary histories should be as simply explained as possible.
-
-Problem
-Figure 2. The Hamming distance between these two strings is 7. 
-Mismatched symbols are colored red.
-Given two strings s and t of equal length, the Hamming distance between 
-s and t, denoted dH(s,t), is the number of corresponding symbols that 
-differ in s and t. See Figure 2.
-
-Given: Two DNA strings s and t of equal length (not exceeding 1 kbp).
-Return: The Hamming distance dH(s,t).
-
-Sample Dataset
-GAGCCTACTAACGGGAT
-CATCGTAATGACGGCCT
-
-Sample Output
-7
-"""
+"""HAMM"""
 def dH(s, t):
     assert(len(s)==len(t))
 
@@ -834,5 +641,79 @@ def save_seqs_to_file(seqs, fname):
         for s in seqs:
             fw.write(s + '\n')
 #...........................................................................
+"""
+Problem:: http://rosalind.info/problems/pmch/
+A matching in a graph G is a collection of edges of G for which NO node belongs to more than 1 edge in the collection. See Figure 2 for examples of matchings. 
+If G contains an even number of nodes (say 2n), then a matching on G is perfect if it contains n edges, which is clearly the maximum possible. An example of a graph containing a perfect matching is shown in Figure 3.
+
+First, let Kn denote the complete graph on 2n labeled nodes, in which every node is connected to every other node with an edge, and let pn denote the total number of perfect matchings in Kn. For a given node x, there are 2n−1 ways to join x to the other nodes in the graph, after which point we must form a perfect matching on the remaining 2n−2 nodes. This reasoning provides us with the recurrence relation $p_n$=(2n−1)⋅$p_n−1$; using the fact that p1 is 1, this recurrence relation implies the closed equation $p_n$=(2n−1)(2n−3)(2n−5)⋯(3)(1).
+
+Given an RNA string s=s1…sn, a bonding graph for s is formed as follows. 
+* First, assign each symbol of s to a node, and arrange these nodes in order around a circle, connecting them with edges called adjacency edges. 
+* Second, form all possible edges {A, U} and {C, G}, called basepair edges; we will represent basepair edges with dashed edges, as illustrated by the bonding graph in Figure 4.
+
+Note that a matching contained in the basepair edges will represent one possibility for base pairing interactions in s, as shown in Figure 5. For such a matching to exist, s must have the same number of occurrences of 'A' as 'U' and the same number of occurrences of 'C' as 'G'.
+
+Given: An RNA string s of length at most 80 bp having the same number of occurrences of 'A' as 'U' and the same number of occurrences of 'C' as 'G'.
+
+Return: The total possible number of perfect matchings of basepair edges in the bonding graph of s.
+
+Sample Dataset
+>Rosalind_23
+AGCUAGUCAU
+Sample Output
+12
+"""
+
+#.........................................................................
+"""
+Problem
+For a random variable X taking integer values between 1 and n, the expected value of X is E(X)=∑nk=1k×Pr(X=k). The expected value offers us a way of taking the long-term average of a random variable over a large number of trials.
+
+As a motivating example, let X be the number on a six-sided die. Over a large number of rolls, we should expect to obtain an average of 3.5 on the die (even though it's not possible to roll a 3.5). The formula for expected value confirms that E(X)=∑6k=1k×Pr(X=k)=3.5.
+
+More generally, a random variable for which every one of a number of equally spaced outcomes has the same probability is called a uniform random variable (in the die example, this "equal spacing" is equal to 1). We can generalize our die example to find that if X is a uniform random variable with minimum possible value a and maximum possible value b, then E(X)=a+b2. You may also wish to verify that for the dice example, if Y is the random variable associated with the outcome of a second die roll, then E(X+Y)=7.
+
+Given: Six nonnegative integers, each of which does not exceed 20,000. The integers correspond to the number of couples in a population possessing each genotype pairing for a given factor. In order, the six given integers represent the number of couples having the following genotypes:
+
+AA-AA
+AA-Aa
+AA-aa
+Aa-Aa
+Aa-aa
+aa-aa
+Return: The expected number of offspring displaying the dominant phenotype in the next generation, under the assumption that every couple has exactly two offspring.
+
+Sample Dataset
+1 0 0 1 0 1
+Sample Output
+3.5
+"""
+
+#................................................................
+"""
+Problem: http://rosalind.info/problems/iprb/
+
+Figure 2 (./images/balls_tree.png). The probability of any outcome (leaf) in a probability tree diagram is given by the product of probabilities from the start of the tree to the outcome. For example, the probability that X is blue and Y is blue is equal to (2/5)(1/4), or 1/10.
+Probability is the mathematical study of randomly occurring phenomena. We will model such a phenomenon with a random variable, which is simply a variable that can take a number of different distinct outcomes depending on the result of an underlying random process.
+
+For example, say that we have a bag containing 3 red balls and 2 blue balls. If we let X represent the random variable corresponding to the color of a drawn ball, then the probability of each of the two outcomes is given by Pr(X=red)=35 and Pr(X=blue)=25.
+
+Random variables can be combined to yield new random variables. Returning to the ball example, let Y model the color of a second ball drawn from the bag (without replacing the first ball). The probability of Y being red depends on whether the first ball was red or blue. To represent all outcomes of X and Y, we therefore use a probability tree diagram. This branching diagram represents all possible individual probabilities for X and Y, with outcomes at the endpoints ("leaves") of the tree. The probability of any outcome is given by the product of probabilities along the path from the beginning of the tree; see Figure 2 for an illustrative example.
+
+An event is simply a collection of outcomes. Because outcomes are distinct, the probability of an event can be written as the sum of the probabilities of its constituent outcomes. For our colored ball example, let A be the event "Y is blue." Pr(A) is equal to the sum of the probabilities of two different outcomes: Pr(X=blue and Y=blue)+Pr(X=red and Y=blue), or 310+110=25 (see Figure 2 above).
+
+Given: Three positive integers k, m, and n, representing a population containing k+m+n organisms: k individuals are homozygous dominant for a factor, m are heterozygous, and n are homozygous recessive.
+
+Return: The probability that two randomly selected mating organisms will produce an individual possessing a dominant allele (and thus displaying the dominant phenotype). Assume that any two organisms can mate.
+
+Sample Dataset
+2 2 2
+Sample Output
+0.78333
+
+Hint
+Consider simulating inheritance on a number of small test cases in order to check your solution.
+"""
 
                 

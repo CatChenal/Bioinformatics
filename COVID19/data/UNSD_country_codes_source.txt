@@ -1,3 +1,0 @@
-UNSD_country_codes_source:
-
-https://unstats.un.org/unsd/methodology/m49/overview/

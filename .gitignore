@@ -68,6 +68,7 @@ temp/
 _temp*
 _tmp*
 _unused*
+_x*
 
 # Sphinx documentation
 docs/_build/
