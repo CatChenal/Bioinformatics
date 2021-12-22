@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import numpy as np
 from collections import (defaultdict,
                          Counter)
@@ -7,12 +7,30 @@ from itertools import product
 Answers to Rosalind problems: 
 http://rosalind.info/problems/list-view/
 """
-    
+DATA = Path(__file__).parent.parent.joinpath('data')
+
+def get_file_chunck(fname=None, char_max=1000):
+    """
+    Helper function to retrieve a portion of a string file
+    from the start up to `char_max` number of characters.
+
+    :param: fname: path of file
+    :param: char_max, >=1: maximal number of characters
+    """
+    if fname is None:
+        raise ValueError("get_file_chunck :: Missing file name")
+    if char_max < 1:
+        raise ValueError("get_file_chunck :: Expected char_max >= 1")
+
+    with open(fname) as fh:
+        chunk = fh.readline().strip()[:char_max]
+
+    return chunk
+
+
 """DNA"""
 def words_freq_from_file(fname=None, char_max=1000):
-    with open(fname) as fh:
-        line = fh.readline()[:char_max]
-            
+    line = get_file_chunck(fname=fname, char_max=char_max)
     cnt = Counter(line)
     print(cnt['A'], cnt['C'], cnt['G'], cnt['T'])
     return
@@ -20,17 +38,15 @@ def words_freq_from_file(fname=None, char_max=1000):
 
 """RNA"""
 def rna_from_dna_file(fname=None, char_max=1000):
-    with open(fname) as fh:
-        t = fh.readline().strip()[:char_max]
-    return t.replace('T', 'U')
+    line = get_file_chunck(fname=fname, char_max=char_max)
+    return line.replace('T', 'U')
 
 
 """REVC"""
 def rev_complement_from_dna_file(fname=None, char_max=1000):
-    with open(fname) as fh:
-        dna = fh.readline().strip()[:char_max]
+    line = get_file_chunck(fname=fname, char_max=char_max)
     d = {'A':'T', 'T':'A', 'C':'G', 'G':'C'}
-    print(''.join(d[nt] for nt in dna[::-1]))
+    print(''.join(d[nt] for nt in line[::-1]))
     return
 
 
@@ -65,7 +81,8 @@ def test_fib_pairs():
     
     ok =  out == ans
     print('test_fib_pairs(5,3) = {}?: {}'.format(ans, ok))
-    
+
+
 """GC"""
 def SimpleFastaParser(handle):
     """
@@ -94,7 +111,7 @@ def SimpleFastaParser(handle):
             # Same exception as for FASTQ files
             raise ValueError("Is this handle in binary mode not text mode?")
     else:
-        # no line/break encountered - probably an empty file
+        # no line encountered - probably an empty file
         return
 
     # Main logic: remove trailing whitespace, and any internal spaces
@@ -112,14 +129,18 @@ def SimpleFastaParser(handle):
 
     yield title, ''.join(lines).replace(" ", "").replace("\r", "")
 
+
 """GC"""
 def gc_content(seq):
     cnt = Counter(seq)
     gc = 100 * (cnt['C'] + cnt['G']) / sum(cnt.values())
     return np.round(gc, 6)
 
-"""GC"""
-def highest_gc_from_fasta_files(multifasta=os.path.join(os.curdir, 'rosalind_gc.txt')):
+
+"""GC, data/rosalind_gc.txt"""
+def highest_gc_from_fasta_files(multifasta=None):
+    if multifasta is None:
+        raise ValueError("multifasta=None: Use data/rosalind_gc.txt?")
     gc = 0
     with open(multifasta) as fh:
         for seqs in SimpleFastaParser(fh):
@@ -135,12 +156,7 @@ def highest_gc_from_fasta_files(multifasta=os.path.join(os.curdir, 'rosalind_gc.
 """HAMM"""
 def dH(s, t):
     assert(len(s)==len(t))
-
-    mismatched = 0
-    for a, b in list(zip(s, t)):
-        if a != b:
-            mismatched +=1
-    return mismatched
+    return sum([a!=b for a,b in zip(s, t)])
 
 
 def test_dH():
@@ -148,8 +164,10 @@ def test_dH():
     print('ans == 7 ? {}'.format(ans == 7))
 
 
-def two_seqs_from_file(fname=os.path.join(os.curdir, 'rosalind_hamm.txt'),
-                       char_max=1000):
+def two_seqs_from_file(fname=None, char_max=1000):
+    if fname is None:
+        raise ValueError("fname=None: Use data/rosalind_hamm.txt?")
+
     char_max += 1
     with open(fname) as fh:
         seqs = fh.readlines()
@@ -157,99 +175,10 @@ def two_seqs_from_file(fname=os.path.join(os.curdir, 'rosalind_hamm.txt'),
     s = seqs[0].strip()[:char_max]
     t = seqs[1].strip()[:char_max]
     return s, t
+#====================================
 
 """
 Introduction to Mendelian Inheritance
-
-Figure 1. A Punnett square representing the possible outcomes 
-of crossing a heterozygous organism (Yy) with a homozygous 
-recessive organism (yy); here, the dominant allele Y corresponds 
-to yellow pea pods, and the recessive allele y corresponds to 
-green pea pods.
-Modern laws of inheritance were first described by Gregor Mendel 
-(an Augustinian Friar) in 1865. The contemporary hereditary model, 
-called blending inheritance, stated that an organism must exhibit 
-a blend of its parent's traits. This rule is obviously violated both 
-empirically (consider the huge number of people who are taller than 
-both their parents) and statistically (over time, blended traits would 
-simply blend into the average, severely limiting variation).
-
-Mendel, working with thousands of pea plants, believed that rather 
-than viewing traits as continuous processes, they should instead be 
-divided into discrete building blocks called factors. Furthermore, 
-he proposed that every factor possesses distinct forms, called alleles.
-
-In what has come to be known as his first law (also known as the law 
-of segregation), Mendel stated that every organism possesses a pair 
-of alleles for a given factor. If an individual's two alleles for a 
-given factor are the same, then it is homozygous for the factor; if 
-the alleles differ, then the individual is heterozygous. The first 
-law concludes that for any factor, an organism randomly passes one 
-of its two alleles to each offspring, so that an individual receives 
-one allele from each parent.
-
-Mendel also believed that any factor corresponds to only two possible 
-alleles, the dominant and recessive alleles. An organism only needs to 
-possess one copy of the dominant allele to display the trait represented 
-by the dominant allele. In other words, the only way that an organism can 
-display a trait encoded by a recessive allele is if the individual is 
-homozygous recessive for that factor.
-
-We may encode the dominant allele of a factor by a capital letter (e.g., A) 
-and the recessive allele by a lower case letter (e.g., a). Because a 
-heterozygous organism can possess a recessive allele without displaying 
-the recessive form of the trait, we henceforth define an organism's 
-genotype to be its precise genetic makeup and its phenotype as the 
-physical manifestation of its underlying traits.
-
-The different possibilities describing an individual's inheritance of 
-two alleles from its parents can be represented by a Punnett square; 
-see Figure 1 for an example.
-
-Problem
-Figure 2. The probability of any outcome (leaf) in a probability tree 
-diagram is given by the product of probabilities from the start of the 
-tree to the outcome. For example, the probability that X is blue and Y 
-is blue is equal to (2/5)(1/4), or 1/10.
-Probability is the mathematical study of randomly occurring phenomena. 
-We will model such a phenomenon with a random variable, which is simply 
-a variable that can take a number of different distinct outcomes depending 
-on the result of an underlying random process.
-
-For example, say that we have a bag containing 3 red balls and 2 blue balls. 
-If we let X represent the random variable corresponding to the color of a 
-drawn ball, then the probability of each of the two outcomes is given by 
-Pr(X=red)=3/5 and Pr(X=blue)=2/5.
-
-Random variables can be combined to yield new random variables. Returning 
-to the ball example, let Y model the color of a second ball drawn from the 
-bag (without replacing the first ball). The probability of Y being red depends 
-on whether the first ball was red or blue. To represent all outcomes of X and 
-Y, we therefore use a probability tree diagram. This branching diagram represents 
-all possible individual probabilities for X and Y, with outcomes at the endpoints
- ("leaves") of the tree. The probability of any outcome is given by the product 
- of probabilities along the path from the beginning of the tree.
-
-An event is simply a collection of outcomes. Because outcomes are distinct, the
- probability of an event can be written as the sum of the probabilities of its 
- constituent outcomes. For our colored ball example, let A be the event "Y is 
- blue." Pr(A) is equal to the sum of the probabilities of two different outcomes: 
- Pr(X=blue and Y=blue)+Pr(X=red and Y=blue), or 3/10+1/10=2/5 (see Figure 2 above).
-
-Given: Three positive integers k, m, and n, representing a population containing 
-k+m+n organisms:  
-  k individuals are homozygous dominant for a factor:: AA, 
-  m are heterozygous                                :: Aa 
-  n are homozygous recessive                        :: aa
-
-Return: The probability that two randomly selected mating organisms will 
-produce an individual possessing a dominant allele (and thus displaying 
-the dominant phenotype). Assume that any two organisms can mate.
-
-Sample Dataset
-2 2 2
-Sample Output
-0.78333
 """
 def trait_from_punnet_crossings(parent1_traits, parent2_traits, filter_trait):
     # Return a tuple of the count of filter_traits (str) in each of theses crosses:
@@ -296,9 +225,9 @@ def trait_from_punnet_crossings(parent1_traits, parent2_traits, filter_trait):
 def prob_dominant(k=2, m=2, n=2):
     """
     One trait two alleles, A and a;
-    k # homozygous dominant :: AA
-    m # heterozygous        :: Aa
-    n # homozyg. recessive  :: aa
+    k # homozygous dominant   :: AA
+    m # heterozygous          :: Aa
+    n # homozygous recessive  :: aa
     Return: The probability that two randomly selected mating organisms will 
     produce an individual possessing a dominant allele (and thus displaying 
     the dominant phenotype). Assume that any two organisms can mate.
@@ -333,59 +262,19 @@ def prob_dominant(k=2, m=2, n=2):
 def test_prob_dominant():
     k, m, n = 2, 2, 2
     ans = np.round(prob_dominant(k, m, n), 5)
-    print('ans == 0.78333 ? {} ({})'.format(ans == 0.78333, ans))
+    print(F'Given k:2, m:2, n2\nAns == 0.78333 ? {ans == 0.78333} ({ans})')
     
     
-def prob_dominant_from_file(fname=os.path.join(os.curdir, 'rosalind_iprb.txt')):
+def prob_dominant_from_file(fname=None):
+    if fname is None:
+        raise ValueError("fname=None: Use data/rosalind_iprb.txt?")
+
     with open(fname) as fh:
         k, m, n = [int(n) for n in fh.readline().strip().split()]
     print('k, m, n:', k, m, n) 
     return prob_dominant(k, m, n)
 #...............................................................
-"""
-Problem
-For a random variable X taking integer values between 1 and n, the expected value of X  
-is E(X)=∑nk=1k×Pr(X=k). The expected value offers us a way of taking the long-term  
-average of a random variable over a large number of trials.
 
-As a motivating example, let X be the number on a six-sided die. Over a large number  
-of rolls, we should expect to obtain an average of 3.5 on the die (even though it's  
-not possible to roll a 3.5). The formula for expected value confirms that  
-`E(X)=∑6k=1k×Pr(X=k)=3.5.`
-
-More generally, a random variable for which every one of a number of equally spaced  
-outcomes has the same probability is called a uniform random variable (in the die  
-example, this "equal spacing" is equal to 1). We can generalize our die example to  
-find that if X is a uniform random variable with minimum possible value a and  
-maximum possible value b, then E(X)=a+b2. You may also wish to verify that for the  
-dice example, if Y is the random variable associated with the outcome of a second  
-die roll, then E(X+Y)=7.
-
-Given:  
-Six nonnegative integers, each of which does not exceed 20,000.  
-The integers correspond to the number of couples in a population possessing each  
-genotype pairing for a given factor. In order, the six given integers represent the  
-number of couples having the following genotypes:
-```
-AA-AA
-AA-Aa
-AA-aa
-Aa-Aa
-Aa-aa
-aa-aa
-```
-Return: The expected number of offspring displaying the dominant phenotype in  
-the next generation, under the assumption that every couple has exactly two offspring.  
-
-Sample Dataset  
-```
-1 0 0 1 0 1
-```
-Sample Output 
-`3.5`
-"""
-
-#...............................................................
 # AUG = 'M' = 'start'
 rna_codons = {'UUU':'F', 'CUU':'L', 'AUU':'I', 'GUU':'V',
               'UUC':'F', 'CUC':'L', 'AUC':'I', 'GUC':'V',
@@ -405,7 +294,10 @@ rna_codons = {'UUU':'F', 'CUU':'L', 'AUU':'I', 'GUU':'V',
               'UGG':'W', 'CGG':'R', 'AGG':'R', 'GGG':'G'}
 
 
-def rna_from_file(fname=os.path.join(os.curdir, 'rosalind_prot.txt')):
+def rna_from_file(fname=DATA.joinpath('rosalind_prot.txt')):
+    if fname is None:
+        raise ValueError("fname=None: Use data/rosalind_prot.txt?")
+
     MAX_LEN = 10_001
 
     with open(fname) as fh:
@@ -471,7 +363,7 @@ def test_get_motif_locs():
     return check
 
 #...............................................................
-def seqs_from_fasta_files(multifasta=os.path.join(os.curdir, 'rosalind_xx.txt'),
+def seqs_from_fasta_files(multifasta=DATA.joinpath('rosalind_xx.txt'),
                           split_seq=True,
                           max_len = 1000):
     max_len += 1
@@ -489,6 +381,11 @@ def seqs_from_fasta_files(multifasta=os.path.join(os.curdir, 'rosalind_xx.txt'),
     return ids, seqs
 
 
+def save_str_to_file(s, fname):
+    with open(fname, 'w') as fh:
+        fh.write(s)
+
+
 def get_profile_printout(prof):
     """
     Return a string for each key (NT) in profile dict; 
@@ -500,12 +397,7 @@ def get_profile_printout(prof):
     return p
  
 
-def save_str_to_file(s, fname):
-    with open(fname, 'w') as fh:
-        fh.write(s)
-
-    
-def get_consensus(seqs):
+def get_consensus0(seqs):
     """
     seqs: an m sequences x n nucleotides array.
     """
@@ -525,6 +417,25 @@ def get_consensus(seqs):
     return consensus, profile
 
 
+def get_consensus(seqs):
+    """
+    seqs: an m sequences x n nucleotides array.
+    """
+    nts = 'ACGT'
+    profile = defaultdict(list)
+    seqs = np.array(seqs)
+    for c in range(seqs.shape[1]):
+        col = seqs[:, c].flatten()
+        cnt = Counter(col)
+        for base in nts:
+            profile[base].append(cnt[base])
+
+    max_idx = np.argmax(np.array([v for v in profile.values()]), axis=0)
+    consensus = ''.join(nts[i] for i in max_idx)
+    
+    return consensus, profile
+
+
 def test_get_consensus():
     """
     seqs: an m sequences x n nucleotides array.
@@ -536,44 +447,47 @@ def test_get_consensus():
                  'T': [1, 5, 0, 0, 0, 1, 1, 6]}
     test_profile = get_profile_printout(test_prof)
     
-    data = seqs_from_fasta_files(multifasta=os.path.join(os.curdir, 'test_profile.fasta'))
+    data = seqs_from_fasta_files(multifasta=DATA.joinpath('test_profile.fasta'))
     seqs = np.array(data[1])
     consensus, profile = get_consensus(seqs)
 
     ok1 = consensus == test_consensus
     ok2 = profile == test_prof
 
-    print("test_get_consensus()\n  consensus: {}; profile: {}".format(ok1, ok2))
+    print(F"test_get_consensus()\n  consensus: {ok1}; profile: {ok2}")
 
     
 #...........................................................................
 def fib_pairs_mortal(n, m, dbg=False):
     """
-    Return: total # of pairs after n months have elapsed if all rabbits live for m months.
-            Each pair of rabbits reaches maturity in one month and produces a single 
-            pair of offspring (one male, one female) each subsequent month.
-    n :: generations in months
-    m :: lifetime in months
-    n ≤ 100 and m ≤ 20.
-    # Rabbits born in generation i are produced by rabbits born during 
-    # the previous (m-1) generation, ie. births[i] = sum(births[i-m:i-1]). 
-    # The sum of births during the last m generations is the current pop since
-    # all rabbits older than m are dead.
+    Return: total # of pairs after n months have elapsed if all rabbits live
+            for m months.
+            Each pair of rabbits reaches maturity in one month and produces 
+            a single pair of offspring (one male, one female) each subsequent
+            month.
+    n :: generations in months, n ≤ 100.
+    m :: lifetime in months, m ≤ 20.
+    dbg :: debug flag, to print intermediate result
     """
-    if (n <= 0) | (m > 100):
+    if (n <= 0) | (n > 100):
         return "Incorrect number of generations, n: (1-100)"
     if (m <= 0) | (m > 20):
         return "Incorrect lifespan (in months), m: (1-20)"
     
-    i = 0
+    # Rabbits born in generation i are produced by rabbits born during 
+    # the previous (m-1) generation, ie. births[i] = sum(births[i-m:i-1]). 
+    # The sum of births during the last m generations is the current pop since
+    # all rabbits older than m are dead.
     
-    pops = []
     Pop = [1] + [0]*(m - 1)
-    pops.append([i, sum(Pop), Pop])
+    if dbg:
+        pops = []
+        pops.append([0, sum(Pop), Pop])
     
     for i in range(1, n):
         Pop = [sum(Pop[1:])] + Pop[:-1]
-        pops.append([i, sum(Pop), Pop])
+        if dbg:
+            pops.append([i, sum(Pop), Pop])
 
     if dbg:
         print(pops)
@@ -583,11 +497,12 @@ def fib_pairs_mortal(n, m, dbg=False):
 def test_fib_pairs_mortal():
     tests = [(6, 3, 4),
              (94, 16, 19422747110843061063)]
-    for t in tests:
-        n, m, a = t[0], t[1], t[2]
+    #for t in tests:
+    #    n, m, a = t[0], t[1], t[2]
+    for n, m, a in tests:
         out = fib_pairs_mortal(n, m)
-        ok =  out == a
-        print('test_fib_pairs_mortal({}, {}) = {}?: {}: {}'.format(n, m, a, ok, out))
+        ok = out == a
+        print(F'test_fib_pairs_mortal({m}, {n})\nAns = {a}?: {ok}: {out}')
         
 #...........................................................................
 def overlapped(seq1, seq2, k=3):
@@ -626,14 +541,14 @@ def overlap_graph(fast_file, k=3):
 
 
 def test_overlap_graph():
-    fname = multifasta=os.path.join(os.curdir, 'test_overlap.fasta')
+    fname = multifasta=DATA.joinpath('test_overlap.fasta')
     ans = ['Rosalind_0498 Rosalind_2391',
            'Rosalind_0498 Rosalind_0442',
            'Rosalind_2391 Rosalind_2323']
     
     out = print_overlap_edges(overlap_graph(fname))
-    ok =  out == ans
-    print('test_overlap_graph() = {}?: {}'.format(ans, ok))
+    ok = out == ans
+    print('test_overlap_graph()\nAns = {}?: {}'.format(ans, ok))
 
 
 def save_seqs_to_file(seqs, fname):
@@ -641,79 +556,3 @@ def save_seqs_to_file(seqs, fname):
         for s in seqs:
             fw.write(s + '\n')
 #...........................................................................
-"""
-Problem:: http://rosalind.info/problems/pmch/
-A matching in a graph G is a collection of edges of G for which NO node belongs to more than 1 edge in the collection. See Figure 2 for examples of matchings. 
-If G contains an even number of nodes (say 2n), then a matching on G is perfect if it contains n edges, which is clearly the maximum possible. An example of a graph containing a perfect matching is shown in Figure 3.
-
-First, let Kn denote the complete graph on 2n labeled nodes, in which every node is connected to every other node with an edge, and let pn denote the total number of perfect matchings in Kn. For a given node x, there are 2n−1 ways to join x to the other nodes in the graph, after which point we must form a perfect matching on the remaining 2n−2 nodes. This reasoning provides us with the recurrence relation $p_n$=(2n−1)⋅$p_n−1$; using the fact that p1 is 1, this recurrence relation implies the closed equation $p_n$=(2n−1)(2n−3)(2n−5)⋯(3)(1).
-
-Given an RNA string s=s1…sn, a bonding graph for s is formed as follows. 
-* First, assign each symbol of s to a node, and arrange these nodes in order around a circle, connecting them with edges called adjacency edges. 
-* Second, form all possible edges {A, U} and {C, G}, called basepair edges; we will represent basepair edges with dashed edges, as illustrated by the bonding graph in Figure 4.
-
-Note that a matching contained in the basepair edges will represent one possibility for base pairing interactions in s, as shown in Figure 5. For such a matching to exist, s must have the same number of occurrences of 'A' as 'U' and the same number of occurrences of 'C' as 'G'.
-
-Given: An RNA string s of length at most 80 bp having the same number of occurrences of 'A' as 'U' and the same number of occurrences of 'C' as 'G'.
-
-Return: The total possible number of perfect matchings of basepair edges in the bonding graph of s.
-
-Sample Dataset
->Rosalind_23
-AGCUAGUCAU
-Sample Output
-12
-"""
-
-#.........................................................................
-"""
-Problem
-For a random variable X taking integer values between 1 and n, the expected value of X is E(X)=∑nk=1k×Pr(X=k). The expected value offers us a way of taking the long-term average of a random variable over a large number of trials.
-
-As a motivating example, let X be the number on a six-sided die. Over a large number of rolls, we should expect to obtain an average of 3.5 on the die (even though it's not possible to roll a 3.5). The formula for expected value confirms that E(X)=∑6k=1k×Pr(X=k)=3.5.
-
-More generally, a random variable for which every one of a number of equally spaced outcomes has the same probability is called a uniform random variable (in the die example, this "equal spacing" is equal to 1). We can generalize our die example to find that if X is a uniform random variable with minimum possible value a and maximum possible value b, then E(X)=a+b2. You may also wish to verify that for the dice example, if Y is the random variable associated with the outcome of a second die roll, then E(X+Y)=7.
-
-Given: Six nonnegative integers, each of which does not exceed 20,000. The integers correspond to the number of couples in a population possessing each genotype pairing for a given factor. In order, the six given integers represent the number of couples having the following genotypes:
-
-AA-AA
-AA-Aa
-AA-aa
-Aa-Aa
-Aa-aa
-aa-aa
-Return: The expected number of offspring displaying the dominant phenotype in the next generation, under the assumption that every couple has exactly two offspring.
-
-Sample Dataset
-1 0 0 1 0 1
-Sample Output
-3.5
-"""
-
-#................................................................
-"""
-Problem: http://rosalind.info/problems/iprb/
-
-Figure 2 (./images/balls_tree.png). The probability of any outcome (leaf) in a probability tree diagram is given by the product of probabilities from the start of the tree to the outcome. For example, the probability that X is blue and Y is blue is equal to (2/5)(1/4), or 1/10.
-Probability is the mathematical study of randomly occurring phenomena. We will model such a phenomenon with a random variable, which is simply a variable that can take a number of different distinct outcomes depending on the result of an underlying random process.
-
-For example, say that we have a bag containing 3 red balls and 2 blue balls. If we let X represent the random variable corresponding to the color of a drawn ball, then the probability of each of the two outcomes is given by Pr(X=red)=35 and Pr(X=blue)=25.
-
-Random variables can be combined to yield new random variables. Returning to the ball example, let Y model the color of a second ball drawn from the bag (without replacing the first ball). The probability of Y being red depends on whether the first ball was red or blue. To represent all outcomes of X and Y, we therefore use a probability tree diagram. This branching diagram represents all possible individual probabilities for X and Y, with outcomes at the endpoints ("leaves") of the tree. The probability of any outcome is given by the product of probabilities along the path from the beginning of the tree; see Figure 2 for an illustrative example.
-
-An event is simply a collection of outcomes. Because outcomes are distinct, the probability of an event can be written as the sum of the probabilities of its constituent outcomes. For our colored ball example, let A be the event "Y is blue." Pr(A) is equal to the sum of the probabilities of two different outcomes: Pr(X=blue and Y=blue)+Pr(X=red and Y=blue), or 310+110=25 (see Figure 2 above).
-
-Given: Three positive integers k, m, and n, representing a population containing k+m+n organisms: k individuals are homozygous dominant for a factor, m are heterozygous, and n are homozygous recessive.
-
-Return: The probability that two randomly selected mating organisms will produce an individual possessing a dominant allele (and thus displaying the dominant phenotype). Assume that any two organisms can mate.
-
-Sample Dataset
-2 2 2
-Sample Output
-0.78333
-
-Hint
-Consider simulating inheritance on a number of small test cases in order to check your solution.
-"""
-
-                
